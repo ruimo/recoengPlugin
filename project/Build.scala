@@ -17,7 +17,7 @@ object ApplicationBuild extends Build {
     publishTo := Some(
       Resolver.file(
         "recoeng",
-        new File(Option(System.getenv("RELEASE_DIR")).getOrElse("/tmp"))
+        new File(Option(System.getenv("RELEASE_DIR")).getOrElse("/tmp") + "/com/ruimo")
       )
     )
   )
