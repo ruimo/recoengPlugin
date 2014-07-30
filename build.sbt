@@ -16,6 +16,6 @@ libraryDependencies ++= Seq(
 publishTo := Some(
   Resolver.file(
     "recoeng",
-    new File(Option(System.getenv("RELEASE_DIR")).getOrElse("/tmp") + "/com/ruimo/recoeng")
+    new File(Option(System.getenv("RELEASE_DIR")).getOrElse("/tmp") + "/com/ruimo")
   )
 )
