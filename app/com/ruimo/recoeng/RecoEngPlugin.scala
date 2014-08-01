@@ -2,7 +2,7 @@ package com.ruimo.recoeng
 
 import play.api._
 
-class RecoEngPlugin extends Plugin {
+class RecoEngPlugin(app: Application) extends Plugin {
   override def onStart() {
     println("Plugin started...")
   }
