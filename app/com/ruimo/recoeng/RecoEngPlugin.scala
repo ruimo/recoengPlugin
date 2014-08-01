@@ -1,11 +1,13 @@
 package com.ruimo.recoeng
 
 import java.util.concurrent.atomic.AtomicLong
+import com.ruimo.recoeng.json.TransactionMode
+import com.ruimo.recoeng.json.SalesItem
 import play.api._
 
 object SequenceNumber {
   private val seed = new AtomicLong
-  def apply: Long = seed.incrementAndGet
+  def apply(): Long = seed.incrementAndGet
 }
 
 trait RecoEngApi {
@@ -20,6 +22,14 @@ trait RecoEngApi {
 }
 
 class RecoEngApiImpl(plugin: RecoEngPlugin) extends RecoEngApi {
+  def onSales(
+    requestTime: Long = System.currentTimeMillis,
+    sequenceNumber: Long = SequenceNumber(),
+    transactionMode: TransactionMode,
+    transactionTime: Long,
+    userCode: String,
+    itemTable: Seq[SalesItem]
+  ) {}
 }
 
 class RecoEngPlugin(val app: Application) extends Plugin {
