@@ -9,6 +9,7 @@ object ApplicationBuild extends Build {
 
   val appDependencies = Seq(
     // Add your project dependencies here,
+    "com.ruimo" %% "recoengcommon" % "1.1-SNAPSHOT",
     jdbc,
     anorm
   )
@@ -16,6 +17,7 @@ object ApplicationBuild extends Build {
   val main = play.Project(appName, appVersion, appDependencies).settings(
     name := "recoengplugin",
     organization := "com.ruimo",
+    resolvers += "ruimo.com" at "http://www.ruimo.com/release",
     publishTo := Some(
       Resolver.file(
         "recoeng",
