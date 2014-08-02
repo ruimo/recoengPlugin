@@ -10,6 +10,7 @@ object ApplicationBuild extends Build {
   val appDependencies = Seq(
     // Add your project dependencies here,
     "com.ruimo" %% "recoengcommon" % "1.1-SNAPSHOT",
+    "org.mockito" % "mockito-all" % "1.9.5" % "test",
     jdbc,
     anorm
   )
