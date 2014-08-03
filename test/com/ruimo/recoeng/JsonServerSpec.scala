@@ -23,6 +23,7 @@ class JsonServerSpec extends Specification {
       )
 
       (err \ "header" \ "sequenceNumber").as[String] === "12345"
+      (err \ "header" \ "statusCode").as[String] === "IG"
     }
   }
 }

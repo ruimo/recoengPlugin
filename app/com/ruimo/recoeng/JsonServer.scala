@@ -31,8 +31,8 @@ object JsonServer {
     {
       "header": {
         "sequenceNumber": "$seqNo",
-        "statusCode": "OK",
-        "message": "No Redis settings found. This is subbed response"
+        "statusCode": "IG",
+        "message": "No Redis settings found. This request is just ignored."
       }
     }
     """
