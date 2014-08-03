@@ -18,12 +18,6 @@ object SequenceNumber {
   def apply(): Long = seed.incrementAndGet
 }
 
-object JsonServer {
-  def jsServer(req: JsValue): JsValue = {
-    req
-  }
-}
-
 trait RecoEngApi {
   def onSales(
     requestTime: Long = System.currentTimeMillis,
@@ -41,7 +35,7 @@ class RecoEngApiImpl(plugin: RecoEngPlugin) extends RecoEngApi {
   implicit val requestHeaderWrites = Writes[JsonRequestHeader] { req =>
     Json.obj(
       "dateTime" -> Json.toJson(req.dateTimeInYyyyMmDd),
-      "sequencenumber" -> Json.toJson(req.sequenceNumber)
+      "sequenceNumber" -> Json.toJson(req.sequenceNumber)
     )
   }
 
@@ -56,7 +50,7 @@ class RecoEngApiImpl(plugin: RecoEngPlugin) extends RecoEngApi {
   implicit val onSalesJsonRequestWrites = Writes[OnSalesJsonRequest] { req =>
     Json.obj(
       "header" -> Json.toJson(req.header),
-      "mode" -> Json.toJson(req.mode),
+      "transactionMode" -> Json.toJson(req.mode),
       "dateTime" -> Json.toJson(req.tranDateInYyyyMmDd),
       "userCode" -> Json.toJson(req.userCode),
       "itemList" -> Json.toJson(req.itemList)
@@ -90,7 +84,7 @@ class RecoEngApiImpl(plugin: RecoEngPlugin) extends RecoEngApi {
     userCode: String,
     itemTable: Seq[SalesItem]
   )(
-    server: JsValue => JsValue = JsonServer.jsServer
+    server: JsValue => JsValue = JsonServer.jsServer(plugin.config)
   ): JsResult[OnSalesJsonResponse] = {
     val req = OnSalesJsonRequest(
       header = JsonRequestHeader(
