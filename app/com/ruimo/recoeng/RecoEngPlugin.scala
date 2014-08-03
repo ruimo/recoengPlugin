@@ -1,5 +1,6 @@
 package com.ruimo.recoeng
 
+import play.api.Logger
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import org.joda.time.DateTime
@@ -33,6 +34,7 @@ class RecoEngApiImpl(
   plugin: RecoEngPlugin,
   serverFactory: RecoEngPlugin => JsValue => JsValue = (p: RecoEngPlugin) => JsonServer.jsServer(p.config)
 ) extends RecoEngApi {
+  val logger = Logger(getClass)
   def server: JsValue => JsValue = serverFactory.apply(plugin)
 
   implicit val requestHeaderWrites = Writes[JsonRequestHeader] { req =>
@@ -98,7 +100,17 @@ class RecoEngApiImpl(
       itemList = itemTable
     )
 
-    server(Json.toJson(req)).validate[OnSalesJsonResponse]
+    val jsonRequest = Json.toJson(req)
+    val jsonResponse = server(jsonRequest)
+    val resp: JsResult[OnSalesJsonResponse] = jsonResponse.validate[OnSalesJsonResponse]
+
+    resp match {
+      case JsError(error) =>
+        logger.error("Sending recommend onSales request. error: " + error + ", req: " + jsonRequest + ", resp: " + jsonResponse)
+      case _ =>
+    }
+    
+    resp
   }
 }
 
