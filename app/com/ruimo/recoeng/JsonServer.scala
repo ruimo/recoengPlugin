@@ -20,18 +20,21 @@ object JsonServer {
 
       assume(resp.status == Results.Ok.header.status, "Status invalid (=" + resp.status)
       Json.parse(resp.body)
-    }.getOrElse {
-      val seqNo = (req \ "header" \ "sequenceNumber").as[String] 
-      Json.parse(
-        s"""
-        {
-          "header": {
-            "sequenceNumber": "$seqNo",
-            "statusCode" = "OK",
-            "message" = "No Redis settings found. This is subbed response"
-          }
-        }
-        """
-      )
+    }.getOrElse(noConfigError(req))
+
+  def noConfigError(req: JsValue): JsValue = noConfigError(
+    (req \ "header" \ "sequenceNumber").as[String]
+  )
+
+  def noConfigError(seqNo: String): JsValue = Json.parse(
+    s"""
+    {
+      "header": {
+        "sequenceNumber": "$seqNo",
+        "statusCode": "OK",
+        "message": "No Redis settings found. This is subbed response"
+      }
     }
+    """
+  )
 }
