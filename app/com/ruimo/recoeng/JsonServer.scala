@@ -1,5 +1,6 @@
 package com.ruimo.recoeng
 
+import play.api.Logger
 import play.api.libs.json._
 import scala.concurrent.Await
 import play.api.libs.ws.WS
@@ -9,7 +10,11 @@ import com.ruimo.recoeng.json.OnSalesJsonResponse
 import com.ruimo.recoeng.json.JsonResponseHeader
 
 object JsonServer {
-  def jsServer(configOpt: Option[RecoEngConfig])(req: JsValue): JsValue =
+  val logger = Logger(getClass)
+
+  def jsServer(configOpt: Option[RecoEngConfig])(req: JsValue): JsValue = {
+    logger.debug("Sending recommend request: " + req)
+
     configOpt.map { config =>
       val url = "http://" + config.host + ":" + config.port + "/onSales"
       val resp = Await.result(
@@ -19,8 +24,12 @@ object JsonServer {
       )
 
       assume(resp.status == Results.Ok.header.status, "Status invalid (=" + resp.status)
-      Json.parse(resp.body)
+      val jsResp = Json.parse(resp.body)
+
+      logger.debug("Received recommend response: " + jsResp)
+      jsResp
     }.getOrElse(noConfigError(req))
+  }
 
   def noConfigError(req: JsValue): JsValue = noConfigError(
     (req \ "header" \ "sequenceNumber").as[String]
