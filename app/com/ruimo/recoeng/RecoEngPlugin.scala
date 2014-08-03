@@ -19,8 +19,6 @@ object SequenceNumber {
 }
 
 trait RecoEngApi {
-  def plugin: RecoEngPlugin
-
   def onSales(
     requestTime: Long = System.currentTimeMillis,
     sequenceNumber: Long = SequenceNumber(),
@@ -28,12 +26,15 @@ trait RecoEngApi {
     transactionTime: Long,
     userCode: String,
     itemTable: Seq[SalesItem]
-  )(
-    server: JsValue => JsValue = JsonServer.jsServer(plugin.config)
   ): JsResult[OnSalesJsonResponse]
 }
 
-class RecoEngApiImpl(override val plugin: RecoEngPlugin) extends RecoEngApi {
+class RecoEngApiImpl(
+  plugin: RecoEngPlugin,
+  serverFactory: RecoEngPlugin => JsValue => JsValue = (p: RecoEngPlugin) => JsonServer.jsServer(p.config)
+) extends RecoEngApi {
+  def server: JsValue => JsValue = serverFactory.apply(plugin)
+
   implicit val requestHeaderWrites = Writes[JsonRequestHeader] { req =>
     Json.obj(
       "dateTime" -> Json.toJson(req.dateTimeInYyyyMmDd),
@@ -85,8 +86,6 @@ class RecoEngApiImpl(override val plugin: RecoEngPlugin) extends RecoEngApi {
     transactionTime: Long,
     userCode: String,
     itemTable: Seq[SalesItem]
-  )(
-    server: JsValue => JsValue = JsonServer.jsServer(plugin.config)
   ): JsResult[OnSalesJsonResponse] = {
     val req = OnSalesJsonRequest(
       header = JsonRequestHeader(
