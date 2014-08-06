@@ -5,6 +5,7 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import org.joda.time.DateTime
 import java.util.concurrent.atomic.AtomicLong
+import com.ruimo.recoeng.json.Desc
 import com.ruimo.recoeng.json.SortOrder
 import com.ruimo.recoeng.json.ScoredItem
 import com.ruimo.recoeng.json.JsonRequestPaging
@@ -39,7 +40,7 @@ trait RecoEngApi {
     sequenceNumber: Long = SequenceNumber(),
     storeCode: String,
     itemCode: String,
-    sort: SortOrder,
+    sort: SortOrder = Desc("score"),
     paging: JsonRequestPaging
   ): JsResult[RecommendBySingleItemJsonResponse]
 }
