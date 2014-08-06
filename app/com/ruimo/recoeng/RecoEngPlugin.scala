@@ -5,13 +5,18 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import org.joda.time.DateTime
 import java.util.concurrent.atomic.AtomicLong
+import com.ruimo.recoeng.json.SortOrder
+import com.ruimo.recoeng.json.ScoredItem
+import com.ruimo.recoeng.json.JsonRequestPaging
 import com.ruimo.recoeng.json.OnSalesJsonRequest
+import com.ruimo.recoeng.json.RecommendBySingleItemJsonRequest
 import com.ruimo.recoeng.json.OnSalesJsonResponse
 import com.ruimo.recoeng.json.JsonRequestHeader
 import com.ruimo.recoeng.json.TransactionMode
 import com.ruimo.recoeng.json.TransactionSalesMode
 import com.ruimo.recoeng.json.SalesItem
 import com.ruimo.recoeng.json.JsonResponseHeader
+import com.ruimo.recoeng.json.RecommendBySingleItemJsonResponse
 import play.api._
 
 object SequenceNumber {
@@ -28,6 +33,15 @@ trait RecoEngApi {
     userCode: String,
     itemTable: Seq[SalesItem]
   ): JsResult[OnSalesJsonResponse]
+
+  def recommendBySingleItem(
+    requestTime: Long = System.currentTimeMillis,
+    sequenceNumber: Long = SequenceNumber(),
+    storeCode: String,
+    itemCode: String,
+    sort: SortOrder,
+    paging: JsonRequestPaging
+  ): JsResult[RecommendBySingleItemJsonResponse]
 }
 
 class RecoEngApiImpl(
@@ -36,6 +50,13 @@ class RecoEngApiImpl(
 ) extends RecoEngApi {
   val logger = Logger(getClass)
   def server: JsValue => JsValue = serverFactory.apply(plugin)
+
+  implicit val pagingWrites = Writes[JsonRequestPaging] { p =>
+    Json.obj(
+      "offset" -> Json.toJson(p.offset),
+      "limit" -> Json.toJson(p.limit)
+    )
+  }
 
   implicit val requestHeaderWrites = Writes[JsonRequestHeader] { req =>
     Json.obj(
@@ -62,6 +83,16 @@ class RecoEngApiImpl(
     )
   }
 
+  implicit val recommendBySingleItemJsonRequestWrites = Writes[RecommendBySingleItemJsonRequest] { req =>
+    Json.obj(
+      "header" -> Json.toJson(req.header),
+      "storeCode" -> Json.toJson(req.storeCode),
+      "itemCode" -> Json.toJson(req.itemCode),
+      "sort" -> Json.toJson(req.sort),
+      "paging" -> Json.toJson(req.paging)
+    )
+  }
+
   implicit val responseHeaderWrites: Writes[JsonResponseHeader] = (
     (__ \ "sequenceNumber").write[String] and
     (__ \ "statusCode").write[String] and
@@ -78,12 +109,30 @@ class RecoEngApiImpl(
     (JsPath \ "message").read[String]
   )(JsonResponseHeader.apply _)
 
-  implicit val onSalesJsonResponse: Reads[OnSalesJsonResponse] =
+  implicit val onSalesJsonResponseReads: Reads[OnSalesJsonResponse] =
     (JsPath \ "header").read[JsonResponseHeader] map OnSalesJsonResponse.apply
 
+  implicit val scoredItemReads: Reads[ScoredItem] = (
+    (JsPath \ "storeCode").read[String] and
+    (JsPath \ "itemCode").read[String] and
+    (JsPath \ "score").read[Double]
+  )(ScoredItem.apply _)
+
+  implicit val jsonRequestPagingReads: Reads[JsonRequestPaging] = (
+    (JsPath \ "offset").read[Int] and
+    (JsPath \ "limit").read[Int]
+  )(JsonRequestPaging.apply _)
+
+  implicit val recommendBySingleItemJsonResponseReads: Reads[RecommendBySingleItemJsonResponse] = (
+    (JsPath \ "header").read[JsonResponseHeader] and
+    (JsPath \ "itemList").read[Seq[ScoredItem]] and
+    (JsPath \ "sort").read[String] and
+    (JsPath \ "paging").read[JsonRequestPaging]
+  )(RecommendBySingleItemJsonResponse.apply _)
+
   def onSales(
-    requestTime: Long = System.currentTimeMillis,
-    sequenceNumber: Long = SequenceNumber(),
+    requestTime: Long,
+    sequenceNumber: Long,
     transactionMode: TransactionMode,
     transactionTime: Long,
     userCode: String,
@@ -100,17 +149,47 @@ class RecoEngApiImpl(
       itemList = itemTable
     )
 
-    val jsonRequest = Json.toJson(req)
-    val jsonResponse = server(jsonRequest)
-    val resp: JsResult[OnSalesJsonResponse] = jsonResponse.validate[OnSalesJsonResponse]
+    sendJsonRequest("onSales", Json.toJson(req), _.validate[OnSalesJsonResponse])
+  }
 
-    resp match {
+  def recommendBySingleItem(
+    requestTime: Long,
+    sequenceNumber: Long,
+    storeCode: String,
+    itemCode: String,
+    sort: SortOrder,
+    paging: JsonRequestPaging
+  ): JsResult[RecommendBySingleItemJsonResponse] = {
+    val req = RecommendBySingleItemJsonRequest(
+      header = JsonRequestHeader(
+        dateTime = new DateTime(requestTime),
+        sequenceNumber = sequenceNumber.toString
+      ),
+      storeCode = storeCode,
+      itemCode = itemCode,
+      sort = sort.toString,
+      paging = paging
+    )
+
+    sendJsonRequest("recommendBySingleItem", Json.toJson(req), _.validate[RecommendBySingleItemJsonResponse])
+  }
+
+  def sendJsonRequest[T](
+    apiName: String, jsonRequest: JsValue, resultValidator: JsValue => JsResult[T]
+  ): JsResult[T] = {
+    val jsonResponse: JsValue = server(jsonRequest)
+    val result: JsResult[T] = resultValidator(jsonResponse)
+
+    result match {
       case JsError(error) =>
-        logger.error("Sending recommend onSales request. error: " + error + ", req: " + jsonRequest + ", resp: " + jsonResponse)
+        logger.error(
+          "Sending recommend " + apiName + " request. error: " + error +
+          ", req: " + jsonRequest + ", resp: " + jsonResponse
+        )
       case _ =>
     }
-    
-    resp
+
+    result
   }
 }
 
