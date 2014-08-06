@@ -23,7 +23,10 @@ object JsonServer {
           .post(req), Duration(30, SECONDS)
       )
 
-      assume(resp.status == Results.Ok.header.status, "Status invalid (=" + resp.status)
+      assert(
+        resp.status == Results.Ok.header.status,
+        "Status invalid (=" + resp.status + ") request: " + req
+      )
       val jsResp = Json.parse(resp.body)
 
       logger.debug("Received recommend response: " + jsResp)

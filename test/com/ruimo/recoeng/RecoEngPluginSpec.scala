@@ -19,11 +19,11 @@ class RecoEngPluginSpec extends Specification {
     "onSales should issue valid request and accept response" in {
       val pseudoServer: JsValue => JsValue = { (jsReq: JsValue) =>
         doWith(jsReq \ "header") { header =>
-          header \ "dateTime" === toJson(20140102)
+          header \ "dateTime" === toJson("20140102123456")
           header \ "sequenceNumber" === toJson("12345")
         }
         jsReq \ "transactionMode" === toJson(TransactionSalesMode.asString)
-        jsReq \ "dateTime" === toJson(20140202)
+        jsReq \ "dateTime" === toJson("20140202013412")
         jsReq \ "userCode" === toJson("user001")
         doWith(jsReq \ "itemList") { items =>
           val ary = items.asInstanceOf[JsArray]
@@ -54,10 +54,10 @@ class RecoEngPluginSpec extends Specification {
       }
       val api = new RecoEngApiImpl(mock(classOf[RecoEngPlugin]), plugin => pseudoServer)
       val resp: JsResult[OnSalesJsonResponse] = api.onSales(
-        Formatters.YyyyMmDdFormat.parseDateTime("20140102").getMillis,
+        Formatters.YyyyMmDdHhMmSsFormat.parseDateTime("20140102123456").getMillis,
         12345L,
         TransactionSalesMode,
-        Formatters.YyyyMmDdFormat.parseDateTime("20140202").getMillis,
+        Formatters.YyyyMmDdHhMmSsFormat.parseDateTime("20140202013412").getMillis,
         "user001",
         Seq(
           SalesItem("store01", "item01", 1),

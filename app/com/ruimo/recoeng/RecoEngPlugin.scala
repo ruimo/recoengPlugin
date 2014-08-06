@@ -39,7 +39,7 @@ class RecoEngApiImpl(
 
   implicit val requestHeaderWrites = Writes[JsonRequestHeader] { req =>
     Json.obj(
-      "dateTime" -> Json.toJson(req.dateTimeInYyyyMmDd),
+      "dateTime" -> Json.toJson(req.dateTimeInYyyyMmDdHhMmSs),
       "sequenceNumber" -> Json.toJson(req.sequenceNumber)
     )
   }
@@ -56,7 +56,7 @@ class RecoEngApiImpl(
     Json.obj(
       "header" -> Json.toJson(req.header),
       "transactionMode" -> Json.toJson(req.mode),
-      "dateTime" -> Json.toJson(req.tranDateInYyyyMmDd),
+      "dateTime" -> Json.toJson(req.tranDateInYyyyMmDdHhMmSs),
       "userCode" -> Json.toJson(req.userCode),
       "itemList" -> Json.toJson(req.itemList)
     )
