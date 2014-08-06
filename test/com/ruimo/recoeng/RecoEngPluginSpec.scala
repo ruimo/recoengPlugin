@@ -20,7 +20,8 @@ import Json.toJson
 class RecoEngPluginSpec extends Specification {
   "RecoEngPlugin" should {
     "onSales should issue valid request and accept response" in {
-      val pseudoServer: JsValue => JsValue = { (jsReq: JsValue) =>
+      val pseudoServer: (String, JsValue) => JsValue = { (contextPath: String, jsReq: JsValue) =>
+        contextPath === "/onSales"
         doWith(jsReq \ "header") { header =>
           header \ "dateTime" === toJson("20140102123456")
           header \ "sequenceNumber" === toJson("12345")
@@ -78,7 +79,8 @@ class RecoEngPluginSpec extends Specification {
     }
 
     "recommendBySingleItem should issue valid request and accept response" in {
-      val pseudoServer: JsValue => JsValue = { (jsReq: JsValue) =>
+      val pseudoServer: (String, JsValue) => JsValue = { (contextPath: String, jsReq: JsValue) =>
+        contextPath === "/recommendBySingleItem"
         doWith(jsReq \ "header") { header =>
           header \ "dateTime" === toJson("20140102123456")
           header \ "sequenceNumber" === toJson("12345")

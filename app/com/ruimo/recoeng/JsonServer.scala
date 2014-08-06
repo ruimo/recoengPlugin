@@ -12,11 +12,11 @@ import com.ruimo.recoeng.json.JsonResponseHeader
 object JsonServer {
   val logger = Logger(getClass)
 
-  def jsServer(configOpt: Option[RecoEngConfig])(req: JsValue): JsValue = {
+  def jsServer(configOpt: Option[RecoEngConfig])(contextPath: String, req: JsValue): JsValue = {
     logger.debug("Sending recommend request: " + req)
 
     configOpt.map { config =>
-      val url = "http://" + config.host + ":" + config.port + "/onSales"
+      val url = "http://" + config.host + ":" + config.port + contextPath
       val resp = Await.result(
         WS.url(url)
           .withHeaders("Content-Type" -> "application/json; charset=utf-8")

@@ -47,10 +47,11 @@ trait RecoEngApi {
 
 class RecoEngApiImpl(
   plugin: RecoEngPlugin,
-  serverFactory: RecoEngPlugin => JsValue => JsValue = (p: RecoEngPlugin) => JsonServer.jsServer(p.config)
+  serverFactory: RecoEngPlugin => (String, JsValue) => JsValue =
+    (p: RecoEngPlugin) => JsonServer.jsServer(p.config)
 ) extends RecoEngApi {
   val logger = Logger(getClass)
-  def server: JsValue => JsValue = serverFactory.apply(plugin)
+  def server: (String, JsValue) => JsValue = serverFactory.apply(plugin)
 
   implicit val pagingWrites = Writes[JsonRequestPaging] { p =>
     Json.obj(
@@ -150,7 +151,7 @@ class RecoEngApiImpl(
       itemList = itemTable
     )
 
-    sendJsonRequest("onSales", Json.toJson(req), _.validate[OnSalesJsonResponse])
+    sendJsonRequest("/onSales", "onSales", Json.toJson(req), _.validate[OnSalesJsonResponse])
   }
 
   def recommendBySingleItem(
@@ -172,13 +173,16 @@ class RecoEngApiImpl(
       paging = paging
     )
 
-    sendJsonRequest("recommendBySingleItem", Json.toJson(req), _.validate[RecommendBySingleItemJsonResponse])
+    sendJsonRequest(
+      "/recommendBySingleItem",
+      "recommendBySingleItem", Json.toJson(req), _.validate[RecommendBySingleItemJsonResponse]
+    )
   }
 
   def sendJsonRequest[T](
-    apiName: String, jsonRequest: JsValue, resultValidator: JsValue => JsResult[T]
+    contextPath: String, apiName: String, jsonRequest: JsValue, resultValidator: JsValue => JsResult[T]
   ): JsResult[T] = {
-    val jsonResponse: JsValue = server(jsonRequest)
+    val jsonResponse: JsValue = server(contextPath, jsonRequest)
     val result: JsResult[T] = resultValidator(jsonResponse)
 
     result match {
