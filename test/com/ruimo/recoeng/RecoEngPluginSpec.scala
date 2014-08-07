@@ -9,7 +9,7 @@ import com.ruimo.recoeng.json.Formatters
 import com.ruimo.recoeng.json.TransactionSalesMode
 import com.ruimo.recoeng.json.SalesItem
 import com.ruimo.recoeng.json.OnSalesJsonResponse
-import com.ruimo.recoeng.json.RecommendBySingleItemJsonResponse
+import com.ruimo.recoeng.json.RecommendByItemJsonResponse
 import com.ruimo.recoeng.json.Desc
 import com.ruimo.recoeng.json.JsonRequestPaging
 import play.api.libs.json._
@@ -78,15 +78,19 @@ class RecoEngPluginSpec extends Specification {
       }
     }
 
-    "recommendBySingleItem should issue valid request and accept response" in {
+    "recommendByItem should issue valid request and accept response" in {
       val pseudoServer: (String, JsValue) => JsValue = { (contextPath: String, jsReq: JsValue) =>
-        contextPath === "/recommendBySingleItem"
+        contextPath === "/recommendByItem"
         doWith(jsReq \ "header") { header =>
           header \ "dateTime" === toJson("20140102123456")
           header \ "sequenceNumber" === toJson("12345")
         }
-        jsReq \ "storeCode" === toJson("111111")
-        jsReq \ "itemCode" === toJson("222222")
+        doWith(jsReq \ "salesItems") { si =>
+          val salesItems = si.asInstanceOf[JsArray]
+          salesItems.value.size === 1
+          salesItems(0) \ "storeCode" === toJson("111111")
+          salesItems(0) \ "itemCode" === toJson("222222")
+        }
         jsReq \ "sort" === toJson("desc(score)")
         doWith(jsReq \ "paging") { paging =>
           paging \ "offset" === toJson(1)
@@ -123,11 +127,16 @@ class RecoEngPluginSpec extends Specification {
         )        
       }
       val api = new RecoEngApiImpl(mock(classOf[RecoEngPlugin]), plugin => pseudoServer)
-      val resp: JsResult[RecommendBySingleItemJsonResponse] = api.recommendBySingleItem(
+      val resp: JsResult[RecommendByItemJsonResponse] = api.recommendByItem(
         requestTime = Formatters.YyyyMmDdHhMmSsFormat.parseDateTime("20140102123456").getMillis,
         sequenceNumber = 12345L,
-        storeCode = "111111",
-        itemCode = "222222",
+        salesItems = Seq(
+          SalesItem(
+            storeCode = "111111",
+            itemCode = "222222",
+            quantity = 1
+          )
+        ),
         sort = Desc("score"),
         paging = JsonRequestPaging(
           offset = 1,

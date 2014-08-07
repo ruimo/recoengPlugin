@@ -10,14 +10,14 @@ import com.ruimo.recoeng.json.SortOrder
 import com.ruimo.recoeng.json.ScoredItem
 import com.ruimo.recoeng.json.JsonRequestPaging
 import com.ruimo.recoeng.json.OnSalesJsonRequest
-import com.ruimo.recoeng.json.RecommendBySingleItemJsonRequest
+import com.ruimo.recoeng.json.RecommendByItemJsonRequest
 import com.ruimo.recoeng.json.OnSalesJsonResponse
 import com.ruimo.recoeng.json.JsonRequestHeader
 import com.ruimo.recoeng.json.TransactionMode
 import com.ruimo.recoeng.json.TransactionSalesMode
 import com.ruimo.recoeng.json.SalesItem
 import com.ruimo.recoeng.json.JsonResponseHeader
-import com.ruimo.recoeng.json.RecommendBySingleItemJsonResponse
+import com.ruimo.recoeng.json.RecommendByItemJsonResponse
 import play.api._
 
 object SequenceNumber {
@@ -35,13 +35,13 @@ trait RecoEngApi {
     itemTable: Seq[SalesItem]
   ): JsResult[OnSalesJsonResponse]
 
-  def recommendBySingleItem(
+  def recommendByItem(
     requestTime: Long = System.currentTimeMillis,
     sequenceNumber: Long = SequenceNumber(),
     salesItems: Seq[SalesItem],
     sort: SortOrder = Desc("score"),
     paging: JsonRequestPaging
-  ): JsResult[RecommendBySingleItemJsonResponse]
+  ): JsResult[RecommendByItemJsonResponse]
 }
 
 class RecoEngApiImpl(
@@ -84,11 +84,10 @@ class RecoEngApiImpl(
     )
   }
 
-  implicit val recommendBySingleItemJsonRequestWrites = Writes[RecommendBySingleItemJsonRequest] { req =>
+  implicit val recommendByItemJsonRequestWrites = Writes[RecommendByItemJsonRequest] { req =>
     Json.obj(
       "header" -> Json.toJson(req.header),
-      "storeCode" -> Json.toJson(req.storeCode),
-      "itemCode" -> Json.toJson(req.itemCode),
+      "salesItems" -> Json.toJson(req.salesItems),
       "sort" -> Json.toJson(req.sort),
       "paging" -> Json.toJson(req.paging)
     )
@@ -124,12 +123,12 @@ class RecoEngApiImpl(
     (JsPath \ "limit").read[Int]
   )(JsonRequestPaging.apply _)
 
-  implicit val recommendBySingleItemJsonResponseReads: Reads[RecommendBySingleItemJsonResponse] = (
+  implicit val recommendByItemJsonResponseReads: Reads[RecommendByItemJsonResponse] = (
     (JsPath \ "header").read[JsonResponseHeader] and
     (JsPath \ "itemList").read[Seq[ScoredItem]] and
     (JsPath \ "sort").read[String] and
     (JsPath \ "paging").read[JsonRequestPaging]
-  )(RecommendBySingleItemJsonResponse.apply _)
+  )(RecommendByItemJsonResponse.apply _)
 
   def onSales(
     requestTime: Long,
@@ -153,14 +152,14 @@ class RecoEngApiImpl(
     sendJsonRequest("/onSales", "onSales", Json.toJson(req), _.validate[OnSalesJsonResponse])
   }
 
-  def recommendBySingleItem(
+  def recommendByItem(
     requestTime: Long,
     sequenceNumber: Long,
     salesItems: Seq[SalesItem],
     sort: SortOrder,
     paging: JsonRequestPaging
-  ): JsResult[RecommendBySingleItemJsonResponse] = {
-    val req = RecommendBySingleItemJsonRequest(
+  ): JsResult[RecommendByItemJsonResponse] = {
+    val req = RecommendByItemJsonRequest(
       header = JsonRequestHeader(
         dateTime = new DateTime(requestTime),
         sequenceNumber = sequenceNumber.toString
@@ -171,8 +170,8 @@ class RecoEngApiImpl(
     )
 
     sendJsonRequest(
-      "/recommendBySingleItem",
-      "recommendBySingleItem", Json.toJson(req), _.validate[RecommendBySingleItemJsonResponse]
+      "/recommendByItem",
+      "recommendByItem", Json.toJson(req), _.validate[RecommendByItemJsonResponse]
     )
   }
 
