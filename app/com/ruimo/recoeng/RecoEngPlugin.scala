@@ -80,7 +80,7 @@ class RecoEngApiImpl(
       "transactionMode" -> Json.toJson(req.mode),
       "dateTime" -> Json.toJson(req.tranDateInYyyyMmDdHhMmSs),
       "userCode" -> Json.toJson(req.userCode),
-      "itemList" -> Json.toJson(req.itemList)
+      "salesItems" -> Json.toJson(req.salesItems)
     )
   }
 
@@ -125,7 +125,7 @@ class RecoEngApiImpl(
 
   implicit val recommendByItemJsonResponseReads: Reads[RecommendByItemJsonResponse] = (
     (JsPath \ "header").read[JsonResponseHeader] and
-    (JsPath \ "itemList").read[Seq[ScoredItem]] and
+    (JsPath \ "salesItems").read[Seq[ScoredItem]] and
     (JsPath \ "sort").read[String] and
     (JsPath \ "paging").read[JsonRequestPaging]
   )(RecommendByItemJsonResponse.apply _)
@@ -146,7 +146,7 @@ class RecoEngApiImpl(
       mode = TransactionSalesMode.asString,
       dateTime = new DateTime(transactionTime),
       userCode = userCode,
-      itemList = itemTable
+      salesItems = itemTable
     )
 
     sendJsonRequest("/onSales", "onSales", Json.toJson(req), _.validate[OnSalesJsonResponse])

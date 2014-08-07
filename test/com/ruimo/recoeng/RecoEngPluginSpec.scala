@@ -29,7 +29,7 @@ class RecoEngPluginSpec extends Specification {
         jsReq \ "transactionMode" === toJson(TransactionSalesMode.asString)
         jsReq \ "dateTime" === toJson("20140202013412")
         jsReq \ "userCode" === toJson("user001")
-        doWith(jsReq \ "itemList") { items =>
+        doWith(jsReq \ "salesItems") { items =>
           val ary = items.asInstanceOf[JsArray]
           ary.value.size === 2
           doWith(ary.value(0)) { item =>
@@ -105,7 +105,7 @@ class RecoEngPluginSpec extends Specification {
               "statusCode": "OK",
               "message": "msg"
             },
-            "itemList": [
+            "salesItems": [
               {
                 "storeCode": "4",
                 "itemCode": "20481",
@@ -150,14 +150,14 @@ class RecoEngPluginSpec extends Specification {
           header.statusCode === "OK"
           header.message === "msg"
         }
-        doWith(recommendResp.itemList) { itemList =>
-          itemList.size === 2
-          doWith(itemList(0)) { item =>
+        doWith(recommendResp.salesItems) { salesItems =>
+          salesItems.size === 2
+          doWith(salesItems(0)) { item =>
             item.storeCode === "4"
             item.itemCode === "20481"
             item.score === 12f
           }
-          doWith(itemList(1)) { item =>
+          doWith(salesItems(1)) { item =>
             item.storeCode === "2"
             item.itemCode === "2044454"
             item.score === 4f
