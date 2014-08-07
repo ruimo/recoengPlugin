@@ -38,8 +38,7 @@ trait RecoEngApi {
   def recommendBySingleItem(
     requestTime: Long = System.currentTimeMillis,
     sequenceNumber: Long = SequenceNumber(),
-    storeCode: String,
-    itemCode: String,
+    salesItems: Seq[SalesItem],
     sort: SortOrder = Desc("score"),
     paging: JsonRequestPaging
   ): JsResult[RecommendBySingleItemJsonResponse]
@@ -157,8 +156,7 @@ class RecoEngApiImpl(
   def recommendBySingleItem(
     requestTime: Long,
     sequenceNumber: Long,
-    storeCode: String,
-    itemCode: String,
+    salesItems: Seq[SalesItem],
     sort: SortOrder,
     paging: JsonRequestPaging
   ): JsResult[RecommendBySingleItemJsonResponse] = {
@@ -167,8 +165,7 @@ class RecoEngApiImpl(
         dateTime = new DateTime(requestTime),
         sequenceNumber = sequenceNumber.toString
       ),
-      storeCode = storeCode,
-      itemCode = itemCode,
+      salesItems = salesItems,
       sort = sort.toString,
       paging = paging
     )
