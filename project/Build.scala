@@ -18,7 +18,7 @@ object ApplicationBuild extends Build {
   val main = play.Project(appName, appVersion, appDependencies).settings(
     name := "recoengplugin",
     organization := "com.ruimo",
-    resolvers += "ruimo.com" at "http://www.ruimo.com/release",
+    resolvers += "ruimo.com" at "http://static.ruimo.com/release",
     publishTo := Some(
       Resolver.file(
         "recoeng",
