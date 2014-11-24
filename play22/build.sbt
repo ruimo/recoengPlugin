@@ -4,6 +4,8 @@ version := "1.0-SNAPSHOT"
 
 organization := "com.ruimo"
 
+crossScalaVersions := List("2.10.4", "2.11.4") 
+
 resolvers += "ruimo.com" at "http://static.ruimo.com/release"
 
 libraryDependencies ++= Seq(
