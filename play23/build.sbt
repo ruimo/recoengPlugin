@@ -1,10 +1,10 @@
 name := """recoengPlugin4Play23"""
 
-organization := "com.ruimo",
+organization := "com.ruimo"
 
 version := "1.0-SNAPSHOT"
 
-resolvers += "ruimo.com" at "http://static.ruimo.com/release",
+resolvers += "ruimo.com" at "http://static.ruimo.com/release"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
