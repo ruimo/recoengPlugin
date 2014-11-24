@@ -8,6 +8,7 @@ import scala.concurrent.duration._
 import play.api.mvc.Results
 import com.ruimo.recoeng.json.OnSalesJsonResponse
 import com.ruimo.recoeng.json.JsonResponseHeader
+import play.api.Play.current
 
 object JsonServer {
   val logger = Logger(getClass)
